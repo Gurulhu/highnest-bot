@@ -25,33 +25,34 @@ Now fly high, recruit!""" )
     elif flance[1][0] == "text":
         chat = msg["chat"]["id"]
         if msg["text"].find("/call") == 0:
-            global inline_message
-            global count
-            global clicked
+            global context
+
             keyboard = InlineKeyboardMarkup( inline_keyboard = [ [ InlineKeyboardButton( text="Sir, yes sir!", callback_data="click" ) ] ] )
             inline_message = await bot.sendMessage( chat, "Call to Arms!", reply_markup=keyboard )
-            count = 0
-            clicked = []
+            try:
+                cont = { "inline_message" : inline_message, "count" : 0, "clicked" : [] }
+                context.update( { chat : cont } )
+            except: #is not defined yet
+                context = { chat : cont }
 
 
 async def on_callback( msg ):
-    global inline_message
-    global count
-    global clicked
-    _, from_id, data = telepot.glance(msg, flavor='callback_query')
-    if data == "click":
-        count = count + 1
-        if inline_message:
-            msg = telepot.message_identifier( inline_message )
-            keyboard = InlineKeyboardMarkup( inline_keyboard = [ [ InlineKeyboardButton( text="Not yet sir!", callback_data="unclick" ) ] ] )
-            await bot.editMessageText( msg, "Call to Arms!\n\n" + str( count ) + " soldiers are ready!", reply_markup=keyboard )
-    if data == "unclick":
-        count = count - 1
-        if inline_message:
-            msg = telepot.message_identifier( inline_message )
-            keyboard = InlineKeyboardMarkup( inline_keyboard = [ [ InlineKeyboardButton( text="Sir, yes sir!", callback_data="click" ) ] ] )
-            await bot.editMessageText( msg, "Call to Arms!\n\n" + str( count ) + " soldiers are ready!", reply_markup=keyboard )
+    global context
 
+    _, from_id, data = telepot.glance(msg, flavor='callback_query')
+    chat = msg["message"]["chat"]["id"]
+
+    if data == "click":
+        if from_id in context[chat]["clicked"]:
+            context[chat]["count"] = context[chat]["count"] - 1
+            context[chat]["clicked"].remove( from_id )
+        else:
+            context[chat]["count"] = context[chat]["count"] + 1
+            context[chat]["clicked"].append( from_id )
+
+        msg = telepot.message_identifier( context[chat]["inline_message"] )
+        keyboard = InlineKeyboardMarkup( inline_keyboard = [ [ InlineKeyboardButton( text="Sir, yes sir!", callback_data="click" ) ] ] )
+        await bot.editMessageText( msg, "Call to Arms!\n\n" + str( context[chat]["count"] ) + " soldiers are ready!", reply_markup=keyboard )
 
 
 loop = asyncio.get_event_loop()
