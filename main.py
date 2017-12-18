@@ -26,11 +26,11 @@ Now fly high, recruit!""" )
         chat = msg["chat"]["id"]
         if msg["text"].find("/call") == 0:
             global context
-
+            orders = msg["text"][6:]
             keyboard = InlineKeyboardMarkup( inline_keyboard = [ [ InlineKeyboardButton( text="Sir, yes sir!", callback_data="click" ) ] ] )
-            inline_message = await bot.sendMessage( chat, "Call to Arms!", reply_markup=keyboard )
+            inline_message = await bot.sendMessage( chat, "C A L L  T O  A R M S !\nOrders:\n" + orders, reply_markup=keyboard )
+            cont = { "inline_message" : inline_message, "count" : 0, "clicked" : [], "orders" : orders }
             try:
-                cont = { "inline_message" : inline_message, "count" : 0, "clicked" : [] }
                 context.update( { chat : cont } )
             except: #is not defined yet
                 context = { chat : cont }
@@ -52,7 +52,7 @@ async def on_callback( msg ):
 
         msg = telepot.message_identifier( context[chat]["inline_message"] )
         keyboard = InlineKeyboardMarkup( inline_keyboard = [ [ InlineKeyboardButton( text="Sir, yes sir!", callback_data="click" ) ] ] )
-        await bot.editMessageText( msg, "Call to Arms!\n\n" + str( context[chat]["count"] ) + " soldiers are ready!", reply_markup=keyboard )
+        await bot.editMessageText( msg, "C A L L  T O  A R M S !\nOrders:\n" + context[chat]["orders"] + "\n\n" + str( context[chat]["count"] ) + " soldiers are ready!", reply_markup=keyboard )
 
 
 loop = asyncio.get_event_loop()
