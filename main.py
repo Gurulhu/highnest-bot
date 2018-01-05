@@ -19,21 +19,26 @@ async def on_chat( msg ):
 I see in here that your name is """ + name + """, is it correct?\n
 Well, let's get started. I need you to send me your recruitment code, it's the 6 letter code (ABC DEF) at top of your  [🏅Me] tab\n
 You can just paste it in here or forward you [🏅Me] tab to this chat, either is fine.\n
-After that, I want you to take a look at our recruit guide: http://telegra.ph/Highnest-castle-guide-12-15\n
-Everything you need to know should be there, but if any doubts shall fill this little helm of yours, just let us know.\n
+After that, I want you to take a look at our recruit guide: 
+https://docs.google.com/document/d/165zIp74mQsn540ClqfNWtpFnLKqCqNbgtxMwj9OwjO8/edit?usp=drivesdk\n
+Everything you need to know should be there, but if any doubts shall 
+fill this little helm of yours, just let us know.\n
 Now fly high, recruit!""" )
     elif flance[1][0] == "text":
         chat = msg["chat"]["id"]
         if msg["text"].find("/call") == 0:
-            global context
-
-            keyboard = InlineKeyboardMarkup( inline_keyboard = [ [ InlineKeyboardButton( text="Sir, yes sir!", callback_data="click" ) ] ] )
-            inline_message = await bot.sendMessage( chat, "Call to Arms!", reply_markup=keyboard )
-            try:
-                cont = { "inline_message" : inline_message, "count" : 0, "clicked" : [] }
-                context.update( { chat : cont } )
-            except: #is not defined yet
-                context = { chat : cont }
+            trusted =  [ int( each ) for each in os.environ["trusted_list"].split("#") ]
+            print( msg["from"], msg["from"]["id"] in trusted )
+            if msg["from"]["id"] in trusted:
+                global context
+                orders = msg["text"][6:]
+                keyboard = InlineKeyboardMarkup( inline_keyboard = [ [ InlineKeyboardButton( text="Sir, yes sir!", callback_data="click" ) ] ] )
+                inline_message = await bot.sendMessage( chat, "C A L L  T O  A R M S !\nOrders:\n" + orders, reply_markup=keyboard )
+                cont = { "inline_message" : inline_message, "count" : 0, "clicked" : [], "orders" : orders }
+                try:
+                    context.update( { chat : cont } )
+                except: #is not defined yet
+                    context = { chat : cont }
 
 
 async def on_callback( msg ):
@@ -52,7 +57,7 @@ async def on_callback( msg ):
 
         msg = telepot.message_identifier( context[chat]["inline_message"] )
         keyboard = InlineKeyboardMarkup( inline_keyboard = [ [ InlineKeyboardButton( text="Sir, yes sir!", callback_data="click" ) ] ] )
-        await bot.editMessageText( msg, "Call to Arms!\n\n" + str( context[chat]["count"] ) + " soldiers are ready!", reply_markup=keyboard )
+        await bot.editMessageText( msg, "C A L L  T O  A R M S !\nOrders:\n" + context[chat]["orders"] + "\n\n" + str( context[chat]["count"] ) + " soldiers are ready!", reply_markup=keyboard )
 
 
 loop = asyncio.get_event_loop()
